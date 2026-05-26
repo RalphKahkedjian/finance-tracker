@@ -2,24 +2,36 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use App\Models\Category;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        // User::factory(10)->create();
+        Category::create([
+            'name' => 'Food',
+            'type' => 'expense'
+        ]);
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        Category::create([
+            'name' => 'Transport',
+            'type' => 'expense'
+        ]);
+
+        Category::create([
+            'name' => 'Shopping',
+            'type' => 'expense'
+        ]);
+
+        Category::create([
+            'name' => 'Salary',
+            'type' => 'income'
+        ]);
+
+        Category::create([
+            'name' => 'Freelance',
+            'type' => 'income'
         ]);
     }
 }
