@@ -1,65 +1,164 @@
-import Image from "next/image";
+'use client'
+
+import { useEffect, useState } from "react"
+import {
+  getCategories,
+  getTransactions,
+  createTransaction
+} from "@/app/services/financeService"
+
+type Category = {
+  id: number
+  name: string
+  type: "income" | "expense"
+}
+
+type Transaction = {
+  id: number
+  title: string
+  amount: string
+  type: "income" | "expense"
+  date: string
+  note?: string
+  category: Category
+}
 
 export default function Home() {
+  const [categories, setCategories] = useState<Category[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+
+  const [categoryId, setCategoryId] = useState("")
+  const [title, setTitle] = useState("")
+  const [amount, setAmount] = useState("")
+  const [type, setType] = useState("expense")
+  const [date, setDate] = useState("")
+  const [note, setNote] = useState("")
+
+  const fetchData = async () => {
+    const categoriesResponse = await getCategories()
+    const transactionsResponse = await getTransactions()
+
+    setCategories(categoriesResponse.data)
+    setTransactions(transactionsResponse.data)
+  }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const handleSubmit = async () => {
+    await createTransaction({
+      category_id: Number(categoryId),
+      title,
+      amount: Number(amount),
+      type,
+      date,
+      note
+    })
+
+    setCategoryId("")
+    setTitle("")
+    setAmount("")
+    setType("expense")
+    setDate("")
+    setNote("")
+
+    fetchData()
+  }
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="min-h-screen bg-gray-100 p-10">
+      <h1 className="text-3xl font-bold mb-6">
+        Finance Tracker
+      </h1>
+
+      <div className="bg-white p-6 rounded-xl shadow mb-8">
+        <h2 className="text-xl font-semibold mb-4">
+          Add Transaction
+        </h2>
+
+        <div className="grid gap-4 max-w-md">
+          <input
+            className="border p-2 rounded"
+            placeholder="Title"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+
+          <input
+            className="border p-2 rounded"
+            placeholder="Amount"
+            type="number"
+            value={amount}
+            onChange={(e) => setAmount(e.target.value)}
+          />
+
+          <select
+            className="border p-2 rounded"
+            value={type}
+            onChange={(e) => setType(e.target.value)}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+            <option value="expense">Expense</option>
+            <option value="income">Income</option>
+          </select>
+
+          <select
+            className="border p-2 rounded"
+            value={categoryId}
+            onChange={(e) => setCategoryId(e.target.value)}
           >
-            Documentation
-          </a>
+            <option value="">Select Category</option>
+
+            {categories
+              .filter((category) => category.type === type)
+              .map((category) => (
+                <option key={category.id} value={category.id}>
+                  {category.name}
+                </option>
+              ))}
+          </select>
+
+          <input
+            className="border p-2 rounded"
+            type="date"
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+          />
+
+          <textarea
+            className="border p-2 rounded"
+            placeholder="Note"
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+          />
+
+          <button
+            onClick={handleSubmit}
+            className="bg-black text-white p-2 rounded"
+          >
+            Add Transaction
+          </button>
         </div>
-      </main>
-    </div>
-  );
+      </div>
+
+      <div className="bg-white p-6 rounded-xl shadow">
+        <h2 className="text-xl font-semibold mb-4">
+          Transactions
+        </h2>
+
+        {transactions.map((transaction) => (
+          <div
+            key={transaction.id}
+            className="border-b py-3"
+          >
+            <p className="font-semibold">{transaction.title}</p>
+            <p>{transaction.category?.name}</p>
+            <p>{transaction.amount} USD</p>
+            <p>{transaction.type}</p>
+            <p>{transaction.date}</p>
+          </div>
+        ))}
+      </div>
+    </main>
+  )
 }
