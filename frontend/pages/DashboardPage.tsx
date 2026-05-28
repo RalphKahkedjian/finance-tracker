@@ -6,6 +6,8 @@ import { Category } from "@/types/category"
 import { Transaction } from "@/types/transaction"
 import TransactionForm from "@/components/TransactionForm"
 import TransactionList from "@/components/TransactionList"
+import { getCategoryAnalytics } from "@/services/dashboardService"
+import CategoryChart from "@/components/CategoryChart"
 
 function formatAmount(n: number) {
   return n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
@@ -14,12 +16,14 @@ function formatAmount(n: number) {
 export default function DashboardPage() {
   const [categories, setCategories] = useState<Category[]>([])
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [categoryAnalytics, setCategoryAnalytics] = useState([])
 
   const fetchData = async () => {
     try {
-      const [catRes, txRes] = await Promise.all([getCategories(), getTransactions()])
+      const [catRes, txRes, analyticsRes ] = await Promise.all([getCategories(), getTransactions(), getCategoryAnalytics()])
       setCategories(catRes.data[0] ?? catRes.data)
       setTransactions(txRes.data[0] ?? txRes.data)
+      setCategoryAnalytics(analyticsRes.data)
     } catch (err) {
       console.error(err)
     }
@@ -164,7 +168,11 @@ export default function DashboardPage() {
             <TransactionList transactions={transactions} />
           </div>
         </div>
-
+        <div style={{width:'100%', height:'auto'}}>
+                      <CategoryChart
+              data={categoryAnalytics}
+            />
+        </div>
       </main>
     </>
   )

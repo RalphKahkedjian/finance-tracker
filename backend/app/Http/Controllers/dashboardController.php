@@ -22,4 +22,18 @@ class dashboardController extends Controller
             'transaction_count' => $transaction_count
         ]);
     }
+
+    public function categories() {
+        $categories = Transaction::selectRaw('
+            categories.name as category,
+            SUM(transactions.amount) as total
+        ')
+        ->join('categories', 'transactions.category_id', '=', 'categories.id')
+        ->where('transactions.type', 'expense')
+        ->groupBy('categories.name')
+        ->orderByDesc('total')
+        ->get();
+
+        return response()->json($categories);
+    }
 }
